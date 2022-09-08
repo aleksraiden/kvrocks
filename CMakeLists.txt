@@ -145,7 +145,7 @@ list(FILTER KVROCKS_SRCS EXCLUDE REGEX src/main.cc)
 add_library(kvrocks_objs OBJECT ${KVROCKS_SRCS})
 
 target_include_directories(kvrocks_objs PUBLIC src ${PROJECT_BINARY_DIR})
-target_compile_features(kvrocks_objs PUBLIC cxx_std_11)
+target_compile_features(kvrocks_objs PUBLIC cxx_std_17)
 target_compile_options(kvrocks_objs PUBLIC ${WARNING_FLAGS} -fno-omit-frame-pointer)
 target_link_libraries(kvrocks_objs PUBLIC -fno-omit-frame-pointer)
 target_link_libraries(kvrocks_objs PUBLIC ${EXTERNAL_LIBS})
