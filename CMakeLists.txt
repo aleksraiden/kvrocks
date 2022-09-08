@@ -124,7 +124,7 @@ if ((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") OR (CMAKE_CXX_COMPILER_ID STREQUAL "C
 
     if(ENABLE_STATIC_LIBSTDCXX)
         try_compile(FOUND_STATIC_LIBSTDCXX ${PROJECT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/cmake/checks/static_libstdcxx.cc
-            LINK_OPTIONS -static-libstdc++ CXX_STANDARD 11)
+            LINK_OPTIONS -static-libstdc++ CXX_STANDARD 17)
 
         if(NOT FOUND_STATIC_LIBSTDCXX)
             message(FATAL_ERROR "cannot find static library of libstdc++, please add ENABLE_STATIC_LIBSTDCXX=OFF to disable")
