@@ -20,8 +20,8 @@ include_guard()
 include(cmake/utils.cmake)
 
 FetchContent_DeclareGitHubWithMirror(libevent
-  libevent/libevent release-2.1.12-stable
-  MD5=041edf4f20251f429d1674759ab6882c
+  libevent/libevent release-2.2.1-alpha
+  MD5=10591d3266d0a45ec0aa4e7f1d927039
 )
 
 set(libevent_disable_ssl ON)
