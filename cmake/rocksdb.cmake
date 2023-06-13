@@ -25,9 +25,9 @@ endif()
 
 include(cmake/utils.cmake)
 
-FetchContent_DeclareGitHubWithMirror(speedb
-  speedb-io/speedb v2.5.0
-  MD5=96d9588d1ef52794b893aaa04ba0f046
+FetchContent_DeclareGitHubWithMirror(rocksdb
+  speedb-io/speedb 1d934066efdd3c0608cc305b22c70733bf079483
+  MD5=e5bd1625363ae0a6fb5f4d465f1db342
 )
 
 FetchContent_GetProperties(jemalloc)
