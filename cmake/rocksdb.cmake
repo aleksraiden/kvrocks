@@ -26,8 +26,8 @@ endif()
 include(cmake/utils.cmake)
 
 FetchContent_DeclareGitHubWithMirror(rocksdb
-  facebook/rocksdb v8.1.1
-  MD5=b362246096dbd15839749da37d3ccda9
+  speedb-io/speedb v2.4.1
+  MD5=2b87b9a4db60d0b520e2a9b8f39065e0
 )
 
 FetchContent_GetProperties(jemalloc)
@@ -57,4 +57,4 @@ FetchContent_MakeAvailableWithArgs(rocksdb
 
 add_library(rocksdb_with_headers INTERFACE)
 target_include_directories(rocksdb_with_headers INTERFACE ${rocksdb_SOURCE_DIR}/include)
-target_link_libraries(rocksdb_with_headers INTERFACE rocksdb)
+target_link_libraries(rocksdb_with_headers INTERFACE speedb)
