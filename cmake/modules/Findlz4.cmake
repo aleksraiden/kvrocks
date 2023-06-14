@@ -21,5 +21,5 @@ if(lz4_SOURCE_DIR)
   message(STATUS "Found lz4 in ${lz4_SOURCE_DIR}")
 
   add_library(lz4::lz4 ALIAS lz4) # rocksdb use it
-  install(TARGETS lz4 EXPORT RocksDBTargets) # export for install(...)
+  install(TARGETS lz4 EXPORT SpeedbTargets) # export for install(...)
 endif()
