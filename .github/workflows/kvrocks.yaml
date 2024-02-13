@@ -374,8 +374,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: CentOS 7
-            image: centos:7
+          - name: CentOS 8
+            image: centos:8
             compiler: gcc
           - name: openSUSE Leap 15
             image: opensuse/leap:15
@@ -438,7 +438,7 @@ jobs:
           wget https://github.com/Kitware/CMake/releases/download/v3.26.4/cmake-3.26.4-linux-x86_64.sh
           bash cmake-3.26.4-linux-x86_64.sh --skip-license --prefix=/usr
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: actions/setup-go@v3
         if: ${{ !startsWith(matrix.image, 'opensuse') }}
         with:
