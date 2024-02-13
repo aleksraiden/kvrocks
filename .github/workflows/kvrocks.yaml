@@ -391,7 +391,6 @@ jobs:
       - name: Setup CentOS
         if: ${{ startsWith(matrix.image, 'centos') }}
         run: |
-          yum install -y centos-release-scl-rh
           yum install -y devtoolset-11 python3 autoconf automake wget git gcc gcc-c++
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
           mv /usr/bin/gcc /usr/bin/gcc-4.8.5
