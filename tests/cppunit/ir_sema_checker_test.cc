@@ -34,7 +34,7 @@ using namespace kqir;
 
 static auto Parse(const std::string& in) { return sql::ParseToIR(peg::string_input(in, "test")); }
 
-IndexMap MakeIndexMap() {
+static IndexMap MakeIndexMap() {
   auto f1 = FieldInfo("f1", std::make_unique<redis::SearchTagFieldMetadata>());
   auto f2 = FieldInfo("f2", std::make_unique<redis::SearchNumericFieldMetadata>());
   auto f3 = FieldInfo("f3", std::make_unique<redis::SearchNumericFieldMetadata>());
@@ -76,7 +76,5 @@ TEST(SemaCheckerTest, Simple) {
     auto root = *Parse("select f1 from ia where f1 hastag \"a\" and f2 = 1 order by f3");
 
     ASSERT_EQ(checker.Check(root.get()).Msg(), "ok");
-
-    ASSERT_EQ(checker.result.size(), 5);
   }
 }

@@ -140,6 +140,7 @@ include(cmake/xxhash.cmake)
 include(cmake/span.cmake)
 include(cmake/trie.cmake)
 include(cmake/pegtl.cmake)
+include(cmake/rangev3.cmake)
 
 if (ENABLE_LUAJIT)
     include(cmake/luajit.cmake)
@@ -173,6 +174,7 @@ list(APPEND EXTERNAL_LIBS xxhash)
 list(APPEND EXTERNAL_LIBS span-lite)
 list(APPEND EXTERNAL_LIBS tsl_hat_trie)
 list(APPEND EXTERNAL_LIBS pegtl)
+list(APPEND EXTERNAL_LIBS range-v3)
 
 # Add git sha to version.h
 find_package(Git REQUIRED)
@@ -212,7 +214,16 @@ add_library(kvrocks_objs OBJECT ${KVROCKS_SRCS})
 target_include_directories(kvrocks_objs PUBLIC src src/common src/vendor ${PROJECT_BINARY_DIR} ${Backtrace_INCLUDE_DIR})
 target_compile_features(kvrocks_objs PUBLIC cxx_std_17)
 target_compile_options(kvrocks_objs PUBLIC -Wall -Wpedantic -Wsign-compare -Wreturn-type -fno-omit-frame-pointer)
-target_compile_options(kvrocks_objs PUBLIC -Werror=unused-result -Werror=unused-variable)
+target_compile_options(kvrocks_objs PUBLIC -Werror=unused-result)
+
+# disable unused-variable check on GCC < 8 due to the structure bindings
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?format=multiple&id=81767
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8)
+    target_compile_options(kvrocks_objs PUBLIC -Wno-error=unused-variable)
+else()
+    target_compile_options(kvrocks_objs PUBLIC -Werror=unused-variable)
+endif()
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     target_compile_options(kvrocks_objs PUBLIC -Wno-pedantic)
 elseif((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") OR (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang"))

@@ -180,6 +180,7 @@ func TestJson(t *testing.T) {
 		result2 = append(result2, int64(3), int64(5), interface{}(nil))
 		require.NoError(t, rdb.Do(ctx, "JSON.SET", "a", "$", `{"a":"foo", "nested": {"a": "hello"}, "nested2": {"a": 31}}`).Err())
 		require.Equal(t, rdb.Do(ctx, "JSON.STRLEN", "a", "$..a").Val(), result2)
+		require.ErrorIs(t, rdb.Do(ctx, "JSON.STRLEN", "not_exists", "$").Err(), redis.Nil)
 	})
 
 	t.Run("Merge basics", func(t *testing.T) {
@@ -611,6 +612,20 @@ func TestJson(t *testing.T) {
 		require.EqualValues(t, "[]", vals[0])
 		require.EqualValues(t, "[]", vals[1])
 
+	})
+
+	t.Run("JSON.MSET basics", func(t *testing.T) {
+		require.NoError(t, rdb.Do(ctx, "JSON.DEL", "a0").Err())
+		require.Error(t, rdb.Do(ctx, "JSON.MSET", "a0", "$.a", `{"a": 1, "b": 2, "nested": {"a": 3}, "c": null}`, "a1", "$", `{"a": 4, "b": 5, "nested": {"a": 6}, "c": null}`).Err())
+		require.NoError(t, rdb.Do(ctx, "JSON.MSET", "a0", "$", `{"a": 1, "b": 2, "nested": {"a": 3}, "c": null}`, "a1", "$", `{"a": 4, "b": 5, "nested": {"a": 6}, "c": null}`).Err())
+
+		EqualJSON(t, `{"a": 1, "b": 2, "nested": {"a": 3}, "c": null}`, rdb.Do(ctx, "JSON.GET", "a0").Val())
+		EqualJSON(t, `[{"a": 1, "b": 2, "nested": {"a": 3}, "c": null}]`, rdb.Do(ctx, "JSON.GET", "a0", "$").Val())
+		EqualJSON(t, `[1]`, rdb.Do(ctx, "JSON.GET", "a0", "$.a").Val())
+
+		EqualJSON(t, `{"a": 4, "b": 5, "nested": {"a": 6}, "c": null}`, rdb.Do(ctx, "JSON.GET", "a1").Val())
+		EqualJSON(t, `[{"a": 4, "b": 5, "nested": {"a": 6}, "c": null}]`, rdb.Do(ctx, "JSON.GET", "a1", "$").Val())
+		EqualJSON(t, `[4]`, rdb.Do(ctx, "JSON.GET", "a1", "$.a").Val())
 	})
 }
 
