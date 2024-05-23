@@ -66,7 +66,7 @@ rocksdb::Status FieldValueRetriever::Retrieve(std::string_view field, std::strin
     return hash.storage_->Get(read_options, sub_key, output);
   } else if (std::holds_alternative<JsonData>(db)) {
     auto &value = std::get<JsonData>(db);
-    auto s = value.Get(field);
+    auto s = value.Get(field.front() == '$' ? field : fmt::format("$.{}", field));
     if (!s.IsOK()) return rocksdb::Status::Corruption(s.Msg());
     if (s->value.size() != 1)
       return rocksdb::Status::NotFound("json value specified by the field (json path) should exist and be unique");
@@ -159,7 +159,7 @@ Status IndexUpdater::UpdateIndex(const std::string &field, std::string_view key,
     }
 
     auto batch = storage->GetWriteBatchBase();
-    auto cf_handle = storage->GetCFHandle(engine::kSearchColumnFamilyName);
+    auto cf_handle = storage->GetCFHandle(ColumnFamilyID::Search);
 
     for (const auto &tag : tags_to_delete) {
       auto sub_key = ConstructTagFieldSubkey(field, tag, key);
@@ -179,7 +179,7 @@ Status IndexUpdater::UpdateIndex(const std::string &field, std::string_view key,
     if (!s.ok()) return {Status::NotOK, s.ToString()};
   } else if (auto numeric [[maybe_unused]] = dynamic_cast<SearchNumericFieldMetadata *>(metadata)) {
     auto batch = storage->GetWriteBatchBase();
-    auto cf_handle = storage->GetCFHandle(engine::kSearchColumnFamilyName);
+    auto cf_handle = storage->GetCFHandle(ColumnFamilyID::Search);
 
     if (!original.empty()) {
       auto original_num = GET_OR_RET(ParseFloat(std::string(original.begin(), original.end())));
@@ -231,7 +231,7 @@ Status IndexUpdater::Update(const FieldValues &original, std::string_view key, c
 
 void GlobalIndexer::Add(IndexUpdater updater) {
   updater.indexer = this;
-  for (const auto &prefix : updater.info->prefixes.prefixes) {
+  for (const auto &prefix : updater.info->prefixes) {
     prefix_map.insert(prefix, updater);
   }
 }

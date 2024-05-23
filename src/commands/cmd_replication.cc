@@ -242,8 +242,8 @@ class CommandFetchMeta : public Commander {
       } else {
         LOG(WARNING) << "[replication] Fail to send full data file info " << ip << ", error: " << strerror(errno);
       }
-      auto now = static_cast<time_t>(util::GetTimeStamp());
-      srv->storage->SetCheckpointAccessTime(now);
+      auto now_secs = static_cast<time_t>(util::GetTimeStamp());
+      srv->storage->SetCheckpointAccessTimeSecs(now_secs);
     }));
 
     if (auto s = util::ThreadDetach(t); !s) {
@@ -283,7 +283,7 @@ class CommandFetchFile : public Commander {
         if (srv->IsStopped()) break;
 
         uint64_t file_size = 0, max_replication_bytes = 0;
-        if (srv->GetConfig()->max_replication_mb > 0) {
+        if (srv->GetConfig()->max_replication_mb > 0 && srv->GetFetchFileThreadNum() != 0) {
           max_replication_bytes = (srv->GetConfig()->max_replication_mb * MiB) / srv->GetFetchFileThreadNum();
         }
         auto start = std::chrono::high_resolution_clock::now();
@@ -303,16 +303,18 @@ class CommandFetchFile : public Commander {
         // Sleep if the speed of sending file is more than replication speed limit
         auto end = std::chrono::high_resolution_clock::now();
         uint64_t duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-        auto shortest = static_cast<uint64_t>(static_cast<double>(file_size) /
-                                              static_cast<double>(max_replication_bytes) * (1000 * 1000));
-        if (max_replication_bytes > 0 && duration < shortest) {
-          LOG(INFO) << "[replication] Need to sleep " << (shortest - duration) / 1000
-                    << " ms since of sending files too quickly";
-          usleep(shortest - duration);
+        if (max_replication_bytes > 0) {
+          auto shortest = static_cast<uint64_t>(static_cast<double>(file_size) /
+                                                static_cast<double>(max_replication_bytes) * (1000 * 1000));
+          if (duration < shortest) {
+            LOG(INFO) << "[replication] Need to sleep " << (shortest - duration) / 1000
+                      << " ms since of sending files too quickly";
+            usleep(shortest - duration);
+          }
         }
       }
-      auto now = static_cast<time_t>(util::GetTimeStamp());
-      srv->storage->SetCheckpointAccessTime(now);
+      auto now_secs = util::GetTimeStamp<std::chrono::seconds>();
+      srv->storage->SetCheckpointAccessTimeSecs(now_secs);
       srv->DecrFetchFileThread();
     }));
 
