@@ -25,9 +25,9 @@ WORKDIR /kvrocks
 COPY . .
 RUN ./x.py build -DENABLE_OPENSSL=ON -DPORTABLE=1 -DCMAKE_BUILD_TYPE=Release -j $(nproc) $MORE_BUILD_ARGS
 
-FROM alpine:3.16
+FROM alpine:3.20
 
-RUN apk update && apk upgrade && apk add libexecinfo
+RUN apk update && apk upgrade && apk add libexecinfo --repository=https://dl-cdn.alpinelinux.org/alpine/v3.16/main
 RUN mkdir /var/run/kvrocks
 
 VOLUME /var/lib/kvrocks
