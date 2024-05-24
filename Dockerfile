@@ -19,7 +19,7 @@ FROM alpine:3.16 as build
 
 ARG MORE_BUILD_ARGS
 
-RUN apk update && apk upgrade && apk add git gcc g++ make cmake ninja autoconf automake libtool python3 linux-headers curl openssl-dev libexecinfo-dev redis
+RUN apk update && apk upgrade && apk add git gcc g++ make cmake ninja autoconf automake libtool python3 linux-headers curl openssl-dev libexecinfo-dev redis jemalloc-dev
 WORKDIR /kvrocks
 
 COPY . .
