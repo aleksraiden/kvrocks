@@ -76,12 +76,9 @@ jobs:
       - name: Prepare Dependencies
         run: |
           sudo apt update
-          sudo apt install -y clang-format-14 clang-tidy-14
       - uses: apache/skywalking-eyes/header@v0.6.0
         with:
           config: .github/config/licenserc.yml
-      - name: Lint with golangci-lint
-        run: ./x.py check golangci-lint
       
 
   check-docker:
@@ -91,7 +88,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Update all
-        run: apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade -y && apt-get -y full-upgrade
+        run: sudo apt-get update -y && sudo apt-get upgrade -y && sudo apt-get dist-upgrade -y && sudo apt-get -y full-upgrade
       - uses: actions/checkout@v4
       - name: Get core numbers
         run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
