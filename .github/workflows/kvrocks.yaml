@@ -88,7 +88,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Update all
-        run: sudo apt-get update -y && sudo apt-get upgrade -y
+        run: sudo apt-get update -y && sudo apt install unattended-upgrades
       - uses: actions/checkout@v4
       - name: Get core numbers
         run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
