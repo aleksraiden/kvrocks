@@ -88,7 +88,7 @@ jobs:
     name: Check Docker image
     needs: [precondition, check-and-lint, check-typos]
     if: ${{ needs.precondition.outputs.docs_only != 'true' }}
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v4
       - name: Get core numbers
@@ -160,7 +160,7 @@ jobs:
       - name: Setup openSUSE
         if: ${{ startsWith(matrix.image, 'opensuse') }}
         run: |
-          zypper up --auto-agree-with-licenses
+          zypper upgrade --non-interactive -y
           zypper install -y gcc11 gcc11-c++ make wget git autoconf automake python3 python3-pip curl tar gzip cmake go
           update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-11 100
           update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-11 100
