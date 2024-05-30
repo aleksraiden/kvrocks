@@ -38,7 +38,7 @@ if(NOT jemalloc_POPULATED)
     WORKING_DIRECTORY ${jemalloc_SOURCE_DIR}
   )
   execute_process(COMMAND ${jemalloc_SOURCE_DIR}/configure CC=${CMAKE_C_COMPILER} -C --enable-autogen
-                    --disable-shared --disable-libdl ${DISABLE_CACHE_OBLIVIOUS} --with-jemalloc-prefix="je_"
+                    --disable-shared --disable-libdl ${DISABLE_CACHE_OBLIVIOUS} --with-jemalloc-prefix=je_
     WORKING_DIRECTORY ${jemalloc_BINARY_DIR}
   )
   add_custom_target(make_jemalloc 
