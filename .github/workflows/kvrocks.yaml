@@ -92,7 +92,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} -DROCKSDB_MALLOC_USABLE_SIZE=0
+          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} -DROCKSDB_MALLOC_USABLE_SIZE=OFF
           push: false
           tags: kvrocks:ci
           outputs: type=docker
