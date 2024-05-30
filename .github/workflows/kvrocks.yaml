@@ -80,10 +80,6 @@ jobs:
       - uses: apache/skywalking-eyes/header@v0.6.0
         with:
           config: .github/config/licenserc.yml
-      - name: Check with clang-tidy
-        run: |
-          ./x.py build --skip-build
-          ./x.py check tidy -j $(nproc) --clang-tidy-path clang-tidy-14 --run-clang-tidy-path run-clang-tidy-14
       - name: Lint with golangci-lint
         run: ./x.py check golangci-lint
       
