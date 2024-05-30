@@ -88,11 +88,17 @@ jobs:
     name: Check Docker image
     needs: [precondition, check-and-lint, check-typos]
     if: ${{ needs.precondition.outputs.docs_only != 'true' }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
+      - name: Update all
+        run: apt-get update -y && apt-get upgrade -y && apt-get dist-upgrade -y && apt-get -y full-upgrade
       - uses: actions/checkout@v4
       - name: Get core numbers
         run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v5
         with:
           context: .
@@ -102,7 +108,7 @@ jobs:
           outputs: type=docker
       - name: Test built image
         run: |
-          apt-get update -y && apt-get upgrade -y && docker run --rm kvrocks:ci -v
+          docker run --rm kvrocks:ci -v
           ID="$(docker run --rm -d -p 6666:6666 kvrocks:ci)"
           sleep 1m
           if [ "$(docker inspect --format='{{.State.Health.Status}}' $ID)" != "healthy" ]; then
@@ -160,7 +166,7 @@ jobs:
       - name: Setup openSUSE
         if: ${{ startsWith(matrix.image, 'opensuse') }}
         run: |
-          zypper upgrade --non-interactive -y
+          zypper up --non-interactive -y
           zypper install -y gcc11 gcc11-c++ make wget git autoconf automake python3 python3-pip curl tar gzip cmake go
           update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-11 100
           update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-11 100
