@@ -80,15 +80,9 @@ jobs:
     if: ${{ needs.precondition.outputs.docs_only != 'true' }}
     runs-on: ubuntu-22.04
     steps:
-      - name: Update all
-        run: sudo apt-get update -y
       - uses: actions/checkout@v4
       - name: Get core numbers
         run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
       - uses: docker/build-push-action@v5
         with:
           context: .
