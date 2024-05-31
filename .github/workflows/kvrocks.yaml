@@ -92,7 +92,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} 
+          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} -DWITH_JEMALLOC=OFF 
           push: false
           tags: kvrocks:ci
           outputs: type=docker
