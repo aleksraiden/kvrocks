@@ -81,7 +81,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - name: Update all
-        run: sudo apt-get update -y && sudo apt-get upgrade -y
+        run: sudo apt-get update -y
       - uses: actions/checkout@v4
       - name: Get core numbers
         run: echo "NPROC=$(nproc)" >> $GITHUB_ENV
@@ -92,7 +92,7 @@ jobs:
       - uses: docker/build-push-action@v5
         with:
           context: .
-          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} -DROCKSDB_MALLOC_USABLE_SIZE=0 -JEMALLOC_NO_RENAME=0 
+          build-args: MORE_BUILD_ARGS=-j${{ env.NPROC }} -DROCKSDB_MALLOC_USABLE_SIZE=0 -DJEMALLOC_NO_RENAME=0 
           push: false
           tags: kvrocks:ci
           outputs: type=docker
