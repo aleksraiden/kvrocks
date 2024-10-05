@@ -33,6 +33,7 @@
 #include <string>
 #include <thread>
 
+#include "commands/error_constants.h"
 #include "event_util.h"
 #include "fmt/format.h"
 #include "io_util.h"
@@ -336,7 +337,7 @@ ReplicationThread::ReplicationThread(std::string host, uint32_t port, Server *sr
                     CallbackType{CallbacksStateMachine::WRITE, "fullsync write", &ReplicationThread::fullSyncWriteCB},
                     CallbackType{CallbacksStateMachine::READ, "fullsync read", &ReplicationThread::fullSyncReadCB}}) {}
 
-Status ReplicationThread::Start(std::function<void()> &&pre_fullsync_cb, std::function<void()> &&post_fullsync_cb) {
+Status ReplicationThread::Start(std::function<bool()> &&pre_fullsync_cb, std::function<void()> &&post_fullsync_cb) {
   pre_fullsync_cb_ = std::move(pre_fullsync_cb);
   post_fullsync_cb_ = std::move(post_fullsync_cb);
 
@@ -402,13 +403,13 @@ ReplicationThread::CBState ReplicationThread::authWriteCB(bufferevent *bev) {
   return CBState::NEXT;
 }
 
-inline bool ResponseLineIsOK(const char *line) { return strncmp(line, "+OK", 3) == 0; }
+inline bool ResponseLineIsOK(std::string_view line) { return line == RESP_PREFIX_SIMPLE_STRING "OK"; }
 
 ReplicationThread::CBState ReplicationThread::authReadCB(bufferevent *bev) {  // NOLINT
   auto input = bufferevent_get_input(bev);
   UniqueEvbufReadln line(input, EVBUFFER_EOL_CRLF_STRICT);
   if (!line) return CBState::AGAIN;
-  if (!ResponseLineIsOK(line.get())) {
+  if (!ResponseLineIsOK(line.View())) {
     // Auth failed
     LOG(ERROR) << "[replication] Auth failed: " << line.get();
     return CBState::RESTART;
@@ -430,7 +431,7 @@ ReplicationThread::CBState ReplicationThread::checkDBNameReadCB(bufferevent *bev
   if (!line) return CBState::AGAIN;
 
   if (line[0] == '-') {
-    if (isRestoringError(line.get())) {
+    if (isRestoringError(line.View())) {
       LOG(WARNING) << "The master was restoring the db, retry later";
     } else {
       LOG(ERROR) << "Failed to get the db name, " << line.get();
@@ -468,18 +469,18 @@ ReplicationThread::CBState ReplicationThread::replConfReadCB(bufferevent *bev) {
   if (!line) return CBState::AGAIN;
 
   // on unknown option: first try without announce ip, if it fails again - do nothing (to prevent infinite loop)
-  if (isUnknownOption(line.get()) && !next_try_without_announce_ip_address_) {
+  if (isUnknownOption(line.View()) && !next_try_without_announce_ip_address_) {
     next_try_without_announce_ip_address_ = true;
     LOG(WARNING) << "The old version master, can't handle ip-address, "
                  << "try without it again";
     // Retry previous state, i.e. send replconf again
     return CBState::PREV;
   }
-  if (line[0] == '-' && isRestoringError(line.get())) {
+  if (line[0] == '-' && isRestoringError(line.View())) {
     LOG(WARNING) << "The master was restoring the db, retry later";
     return CBState::RESTART;
   }
-  if (!ResponseLineIsOK(line.get())) {
+  if (!ResponseLineIsOK(line.View())) {
     LOG(WARNING) << "[replication] Failed to replconf: " << line.get() + 1;
     //  backward compatible with old version that doesn't support replconf cmd
     return CBState::NEXT;
@@ -530,12 +531,12 @@ ReplicationThread::CBState ReplicationThread::tryPSyncReadCB(bufferevent *bev) {
   UniqueEvbufReadln line(input, EVBUFFER_EOL_CRLF_STRICT);
   if (!line) return CBState::AGAIN;
 
-  if (line[0] == '-' && isRestoringError(line.get())) {
+  if (line[0] == '-' && isRestoringError(line.View())) {
     LOG(WARNING) << "The master was restoring the db, retry later";
     return CBState::RESTART;
   }
 
-  if (line[0] == '-' && isWrongPsyncNum(line.get())) {
+  if (line[0] == '-' && isWrongPsyncNum(line.View())) {
     next_try_old_psync_ = true;
     LOG(WARNING) << "The old version master, can't handle new PSYNC, "
                  << "try old PSYNC again";
@@ -543,7 +544,7 @@ ReplicationThread::CBState ReplicationThread::tryPSyncReadCB(bufferevent *bev) {
     return CBState::PREV;
   }
 
-  if (!ResponseLineIsOK(line.get())) {
+  if (!ResponseLineIsOK(line.View())) {
     // PSYNC isn't OK, we should use FullSync
     // Switch to fullsync state machine
     fullsync_steps_.Start();
@@ -699,25 +700,28 @@ ReplicationThread::CBState ReplicationThread::fullSyncReadCB(bufferevent *bev) {
       fullsync_state_ = kFetchMetaID;
       LOG(INFO) << "[replication] Succeeded fetching full data files info, fetching files in parallel";
 
+      bool pre_fullsync_done = false;
       // If 'slave-empty-db-before-fullsync' is yes, we call 'pre_fullsync_cb_'
       // just like reloading database. And we don't want slave to occupy too much
       // disk space, so we just empty entire database rudely.
       if (srv_->GetConfig()->slave_empty_db_before_fullsync) {
-        pre_fullsync_cb_();
+        if (!pre_fullsync_cb_()) return CBState::RESTART;
+        pre_fullsync_done = true;
         storage_->EmptyDB();
       }
 
       repl_state_.store(kReplFetchSST, std::memory_order_relaxed);
       auto s = parallelFetchFile(target_dir, meta.files);
       if (!s.IsOK()) {
+        if (pre_fullsync_done) post_fullsync_cb_();
         LOG(ERROR) << "[replication] Failed to parallel fetch files while " + s.Msg();
         return CBState::RESTART;
       }
       LOG(INFO) << "[replication] Succeeded fetching files in parallel, restoring the backup";
 
-      // Restore DB from backup
-      // We already call 'pre_fullsync_cb_' if 'slave-empty-db-before-fullsync' is yes
-      if (!srv_->GetConfig()->slave_empty_db_before_fullsync) pre_fullsync_cb_();
+      // Don't need to call 'pre_fullsync_cb_' again if it was called before
+      if (!pre_fullsync_done && !pre_fullsync_cb_()) return CBState::RESTART;
+
       // For old version, master uses rocksdb backup to implement data snapshot
       if (srv_->GetConfig()->master_use_repl_port) {
         s = storage_->RestoreFromBackup();
@@ -726,10 +730,18 @@ ReplicationThread::CBState ReplicationThread::fullSyncReadCB(bufferevent *bev) {
       }
       if (!s.IsOK()) {
         LOG(ERROR) << "[replication] Failed to restore backup while " + s.Msg() + ", restart fullsync";
+        post_fullsync_cb_();
         return CBState::RESTART;
       }
       LOG(INFO) << "[replication] Succeeded restoring the backup, fullsync was finish";
       post_fullsync_cb_();
+
+      // It needs to reload namespaces from DB after the full sync is done,
+      // or namespaces are not visible in the replica.
+      s = srv_->GetNamespace()->LoadAndRewrite();
+      if (!s.IsOK()) {
+        LOG(ERROR) << "[replication] Failed to load and rewrite namespace: " << s.Msg();
+      }
 
       // Switch to psync state machine again
       psync_steps_.Start();
@@ -844,7 +856,7 @@ Status ReplicationThread::sendAuth(int sock_fd, ssl_st *ssl) {
       }
       UniqueEvbufReadln line(evbuf.get(), EVBUFFER_EOL_CRLF_STRICT);
       if (!line) continue;
-      if (!ResponseLineIsOK(line.get())) {
+      if (!ResponseLineIsOK(line.View())) {
         return {Status::NotOK, "auth got invalid response"};
       }
       break;
@@ -998,15 +1010,20 @@ Status ReplicationThread::parseWriteBatch(const std::string &batch_string) {
   return Status::OK();
 }
 
-bool ReplicationThread::isRestoringError(const char *err) {
-  return std::string(err) == "-ERR restoring the db from backup";
+bool ReplicationThread::isRestoringError(std::string_view err) {
+  // err doesn't contain the CRLF, so cannot use redis::Error here.
+  return err == RESP_PREFIX_ERROR + redis::StatusToRedisErrorMsg({Status::RedisLoading, redis::errRestoringBackup});
 }
 
-bool ReplicationThread::isWrongPsyncNum(const char *err) {
-  return std::string(err) == "-ERR wrong number of arguments";
+bool ReplicationThread::isWrongPsyncNum(std::string_view err) {
+  // err doesn't contain the CRLF, so cannot use redis::Error here.
+  return err == RESP_PREFIX_ERROR + redis::StatusToRedisErrorMsg({Status::NotOK, redis::errWrongNumArguments});
 }
 
-bool ReplicationThread::isUnknownOption(const char *err) { return std::string(err) == "-ERR unknown option"; }
+bool ReplicationThread::isUnknownOption(std::string_view err) {
+  // err doesn't contain the CRLF, so cannot use redis::Error here.
+  return err == RESP_PREFIX_ERROR + redis::StatusToRedisErrorMsg({Status::NotOK, redis::errUnknownOption});
+}
 
 rocksdb::Status WriteBatchHandler::PutCF(uint32_t column_family_id, const rocksdb::Slice &key,
                                          const rocksdb::Slice &value) {

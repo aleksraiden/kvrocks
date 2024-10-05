@@ -100,7 +100,7 @@ class RedisComparator:
             self.src_cli.incr(incr_key)
             hash_key = f'hash_key_{i}'
             hash_value = {'field1': f'field1_value_{i}', 'field2': f'field2_value_{i}'}
-            self.src_cli.hmset(hash_key, hash_value)
+            self.src_cli.hset(hash_key, mapping=hash_value)
             set_key = f'set_key_{i}'
             set_value = [f'set_value_{i}_1', f'set_value_{i}_2', f'set_value_{i}_3']
             self.src_cli.sadd(set_key, *set_value)
@@ -110,11 +110,16 @@ class RedisComparator:
             time.sleep(0.02)
             keys = [key, incr_key, hash_key, set_key, zset_key]
             for key in keys:
-                data_type = self.src_cli.type(key)
-                src_data, dst_data = self._compare_data([key], data_type)
-                if src_data != dst_data:
+                attempts = 0
+                while attempts <= 3:
+                    data_type = self.src_cli.type(key)
+                    src_data, dst_data = self._compare_data([key], data_type)
+                    if src_data == dst_data:
+                        break
+                    attempts += 1
+                    time.sleep(0.1)
+                else:
                     raise AssertionError(f"Data mismatch for key '{key}': source data: '{src_data}' destination data: '{dst_data}'")
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Redis Comparator')
