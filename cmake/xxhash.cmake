@@ -26,10 +26,10 @@ FetchContent_DeclareGitHubWithMirror(xxhash
 
 FetchContent_GetProperties(xxhash)
 if(NOT xxhash_POPULATED)
-  FetchContent_Populate(xxhash)
-
-  set(BUILD_SHARED_LIBS OFF)
-  set(XXHASH_BUILD_XXHSUM OFF)
+  FetchContent_MakeAvailableWithArgs(xxhash
+  BUILD_SHARED_LIBS=OFF
+  XXHASH_BUILD_XXHSUM=OFF
+  )
 
   add_subdirectory(${xxhash_SOURCE_DIR}/cmake_unofficial ${xxhash_BINARY_DIR} EXCLUDE_FROM_ALL)
 endif()
