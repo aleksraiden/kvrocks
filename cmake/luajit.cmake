@@ -45,8 +45,7 @@ FetchContent_DeclareGitHubWithMirror(luajit
 
 FetchContent_GetProperties(luajit)
 if (NOT lua_POPULATED)
-  FetchContent_Populate(luajit)
-
+  
   set(LUA_CFLAGS "-DLUA_ANSI -DENABLE_CJSON_GLOBAL -DREDIS_STATIC= -DLUA_USE_MKSTEMP")
   if((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") OR
    (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
@@ -56,6 +55,11 @@ if (NOT lua_POPULATED)
   if (CMAKE_HOST_APPLE)
     set(MACOSX_TARGET "MACOSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}")
   endif ()
+
+  FetchContent_MakeAvailableWithArgs(luajit
+    ${MACOSX_TARGET}
+    ${LUA_CFLAGS}
+  }
 
   add_custom_target(make_luajit COMMAND ${MAKE_COMMAND} libluajit.a ${NINJA_MAKE_JOBS_FLAG}
     "CFLAGS=${LUA_CFLAGS}" ${MACOSX_TARGET}
