@@ -32,6 +32,10 @@ if(NOT lz4_POPULATED)
    (CMAKE_SYSTEM_NAME STREQUAL "Darwin" AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang"))
     set(APPLE_FLAG "CFLAGS=-isysroot ${CMAKE_OSX_SYSROOT}")
   endif()
+
+  FetchContent_MakeAvailableWithArgs(lz4
+    ${APPLE_FLAG}
+  }
   
   add_custom_target(make_lz4 COMMAND ${MAKE_COMMAND} CC=${CMAKE_C_COMPILER} ${NINJA_MAKE_JOBS_FLAG} ${APPLE_FLAG} liblz4.a
     WORKING_DIRECTORY ${lz4_SOURCE_DIR}/lib
