@@ -57,8 +57,8 @@ if (NOT lua_POPULATED)
   endif ()
 
   FetchContent_MakeAvailableWithArgs(luajit
-    ${MACOSX_TARGET}
-    ${LUA_CFLAGS}
+    MACOSX_TARGET=${MACOSX_TARGET}
+    LUA_CFLAGS=${LUA_CFLAGS}
   )
 
   add_custom_target(make_luajit COMMAND ${MAKE_COMMAND} libluajit.a ${NINJA_MAKE_JOBS_FLAG}
