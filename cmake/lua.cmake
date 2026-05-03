@@ -36,7 +36,7 @@ if(NOT lua_POPULATED)
   FetchContent_MakeAvailableWithArgs(lua
     ${LUA_CXX}
     ${LUA_CFLAGS}
-  }
+  )
   
   add_custom_target(make_lua COMMAND ${MAKE_COMMAND} "CC=${LUA_CXX}" "CFLAGS=${LUA_CFLAGS}" ${NINJA_MAKE_JOBS_FLAG} liblua.a
     WORKING_DIRECTORY ${lua_SOURCE_DIR}/src
