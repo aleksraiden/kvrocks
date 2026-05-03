@@ -38,7 +38,7 @@ FetchContent_DeclareGitHubWithMirror(jemalloc
 
 FetchContent_GetProperties(jemalloc)
 if(NOT jemalloc_POPULATED)
-  FetchContent_Populate(jemalloc)
+  FetchContent_MakeAvailableWithArgs(jemalloc)
 
   execute_process(COMMAND autoconf
     WORKING_DIRECTORY ${jemalloc_SOURCE_DIR}
