@@ -35,7 +35,7 @@ if(NOT lz4_POPULATED)
 
   FetchContent_MakeAvailableWithArgs(lz4
     ${APPLE_FLAG}
-  }
+  )
   
   add_custom_target(make_lz4 COMMAND ${MAKE_COMMAND} CC=${CMAKE_C_COMPILER} ${NINJA_MAKE_JOBS_FLAG} ${APPLE_FLAG} liblz4.a
     WORKING_DIRECTORY ${lz4_SOURCE_DIR}/lib
