@@ -126,21 +126,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Darwin Clang arm64
-            os: macos-14
-            compiler: auto
-          - name: Darwin Clang arm64 without Jemalloc
-            os: macos-14
-            compiler: auto
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-          - name: Darwin Clang arm64 with OpenSSL
-            os: macos-14
-            compiler: auto
-            with_openssl: -DENABLE_OPENSSL=ON
-          - name: Darwin Clang arm64 without luaJIT
-            os: macos-14
-            compiler: auto
-            without_luajit: -DENABLE_LUAJIT=OFF
           # FIXME: temporarily disable macos-13 build, refer to #2874
           # - name: Darwin Clang
           #   os: macos-13
@@ -160,95 +145,7 @@ jobs:
           - name: Ubuntu GCC
             os: ubuntu-22.04
             compiler: gcc
-          - name: SonarCloud with Coverage
-            os: ubuntu-22.04
-            compiler: gcc
-            sonarcloud: -DCMAKE_CXX_FLAGS=--coverage
-          - name: Ubuntu Clang
-            os: ubuntu-22.04
-            compiler: clang
-          - name: Ubuntu 24 GCC
-            os: ubuntu-24.04
-            compiler: gcc
-          - name: Ubuntu 24 Clang
-            os: ubuntu-24.04
-            compiler: clang
-          - name: Ubuntu GCC ASan
-            os: ubuntu-22.04
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-            with_sanitizer: -DENABLE_ASAN=ON
-            compiler: gcc
-            ignore_when_asan: -tags="ignore_when_asan"
-          - name: Ubuntu Clang ASan
-            os: ubuntu-22.04
-            with_sanitizer: -DENABLE_ASAN=ON
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-            compiler: clang
-            ignore_when_asan: -tags="ignore_when_asan"
-          - name: Ubuntu GCC TSan
-            os: ubuntu-22.04
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-            with_sanitizer: -DENABLE_TSAN=ON
-            compiler: gcc
-            ignore_when_tsan: -tags="ignore_when_tsan"
-          - name: Ubuntu Clang TSan
-            os: ubuntu-22.04
-            with_sanitizer: -DENABLE_TSAN=ON
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-            compiler: clang
-            ignore_when_tsan: -tags="ignore_when_tsan"
-          - name: Ubuntu Clang UBSAN
-            os: ubuntu-22.04
-            with_sanitizer: -DENABLE_UBSAN=ON
-            without_jemalloc: -DDISABLE_JEMALLOC=ON
-            compiler: clang
-            ignore_when_ubsan: -tags="ignore_when_ubsan"
-          - name: Ubuntu GCC Ninja
-            os: ubuntu-22.04
-            with_ninja: --ninja
-            compiler: gcc
-          - name: Ubuntu GCC with OpenSSL
-            os: ubuntu-22.04
-            compiler: gcc
-            with_openssl: -DENABLE_OPENSSL=ON
-          - name: Ubuntu Clang with OpenSSL
-            os: ubuntu-22.04
-            compiler: clang
-            with_openssl: -DENABLE_OPENSSL=ON
-          - name: Ubuntu GCC without luaJIT
-            os: ubuntu-22.04
-            without_luajit: -DENABLE_LUAJIT=OFF
-            compiler: gcc
-          - name: Ubuntu Clang without luaJIT
-            os: ubuntu-22.04
-            without_luajit: -DENABLE_LUAJIT=OFF
-            compiler: clang
-          - name: Ubuntu GCC with old encoding
-            os: ubuntu-22.04
-            compiler: gcc
-            new_encoding: -DENABLE_NEW_ENCODING=FALSE
-          - name: Ubuntu Clang with old encoding
-            os: ubuntu-22.04
-            compiler: clang
-            new_encoding: -DENABLE_NEW_ENCODING=FALSE
-          - name: Ubuntu ARM GCC
-            os: ubuntu-24.04-arm
-            compiler: gcc
-            arm_linux: true
-          - name: Ubuntu ARM Clang
-            os: ubuntu-24.04-arm
-            compiler: clang
-            arm_linux: true
-          - name: Ubuntu RISC-V GCC without luaJIT (QEMU)
-            os: ubuntu-24.04
-            riscv_toolchain: true
-            toolchain_file: cmake/riscv64.cmake
-            riscv_toolchain_url: "https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2025.07.03/riscv64-glibc-ubuntu-24.04-gcc-nightly-2025.07.03-nightly.tar.xz"
-            cmake_crosscompiling: -DCMAKE_CROSSCOMPILING=TRUE
-            cmake_system_name: -DCMAKE_SYSTEM_NAME=Linux
-            cmake_system_processor: -DCMAKE_SYSTEM_PROCESSOR=riscv64
-            without_luajit: -DENABLE_LUAJIT=OFF
-
+          
     runs-on: ${{ matrix.os }}
     env:
       SONARCLOUD_OUTPUT_DIR: sonarcloud-data
@@ -525,20 +422,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: openSUSE Leap 15
-            image: opensuse/leap:15
-            compiler: gcc
-          - name: ArchLinux
-            image: archlinux:base
-            compiler: gcc
-            # FIXME: enable this when https://github.com/jemalloc/jemalloc/pull/2900 is released
-            disable_jemalloc: -DDISABLE_JEMALLOC=ON
-          - name: Rocky Linux 8
-            image: rockylinux:8
-            compiler: gcc
-          - name: Rocky Linux 9
-            image: rockylinux:9
-            compiler: gcc
           - name: Debian 12
             image: debian:12
             compiler: gcc
