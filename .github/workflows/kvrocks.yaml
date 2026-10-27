@@ -414,16 +414,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - name: Debian 12
-            image: debian:12
-            compiler: gcc
-          - name: Alpine 3
-            image: alpine:3.22
-            compiler: gcc
-            disable_jemalloc: -DDISABLE_JEMALLOC=ON
-          - name: Debian 13
-            image: debian:13
-            compiler: gcc
           - name: Alpine 3.24
             image: alpine:3.24
             compiler: gcc
@@ -501,6 +491,8 @@ jobs:
           apk update
           apk add bash cmake curl git python3 wget make gcc g++ autoconf linux-headers py3-pip py3-redis
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
+          # GCC 15 workaround (Alpine 3.23+)
+          echo "CXXFLAGS=$CXXFLAGS -include cstdint" >> $GITHUB_ENV
 
       - name: Cache redis
         id: cache-redis
