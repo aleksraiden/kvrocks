@@ -488,9 +488,9 @@ jobs:
           apk update
           apk add bash cmake curl git python3 wget make gcc g++ autoconf linux-headers py3-pip py3-redis
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
-          # GCC 15 workaround (Alpine 3.23+)
-          echo "CXXFLAGS=$CXXFLAGS -include cstdint" >> $GITHUB_ENV
-
+          # musl library flar for AutoHyperClock crash fix (Alpine 3.23+)
+          echo "CXXFLAGS=${CXXFLAGS} -DKVROCKS_MUSL" >> $GITHUB_ENV
+          
       - name: Cache redis
         id: cache-redis
         uses: actions/cache@v6
