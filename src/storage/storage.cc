@@ -68,13 +68,13 @@ constexpr bool kRocksdbCacheStrictCapacityLimit = false;
 // used as the default argument for `high_pri_pool_ratio` in creating block cache.
 constexpr double kRocksdbLRUBlockCacheHighPriPoolRatio = 0.75;
 
+// used in creating rocksdb::HyperClockCache, set estimated_entry_charge to 0 means let rocksdb dynamically and
+// automatically adjust the table size for the cache.
+// On musl (Alpine 3.23+) AutoHyperClockCache crashes in the constructor, so force Fixed.
 #ifdef KVROCKS_MUSL
-    // Force FixedHyperClockCache: Auto variant crashes on musl + GCC 15.
-    constexpr size_t kRockdbHCCAutoAdjustCharge = 450
+constexpr size_t kRockdbHCCAutoAdjustCharge = 450;
 #else
-    // used in creating rocksdb::HyperClockCache, set`estimated_entry_charge` to 0 means let rocksdb dynamically and
-    // automatically adjust the table size for the cache.
-    constexpr size_t kRockdbHCCAutoAdjustCharge = 0;
+constexpr size_t kRockdbHCCAutoAdjustCharge = 0;
 #endif
 
 const int64_t kIORateLimitMaxMb = 1024000;
