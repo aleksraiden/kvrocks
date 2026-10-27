@@ -550,7 +550,7 @@ jobs:
       
       - name: Build Kvrocks
         run: |
-          ./x.py build -j$NPROC --unittest --compiler ${{ matrix.compiler }} ${{ matrix.disable_jemalloc }} --dep-dir ${{ env.KVROCKS_DEPS_CACHE_DIR }}
+          ./x.py build -j$NPROC --unittest --compiler ${{ matrix.compiler }} ${{ matrix.disable_jemalloc }} -DCMAKE_CXX_FLAGS="-DKVROCKS_MUSL" --dep-dir ${{ env.KVROCKS_DEPS_CACHE_DIR }}
 
       - name: Run Unit Test
         run: |
