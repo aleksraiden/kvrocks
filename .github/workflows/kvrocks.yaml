@@ -532,7 +532,7 @@ jobs:
             image: debian:12
             compiler: gcc
           - name: Alpine 3
-            image: alpine:3.22
+            image: alpine:3.24
             compiler: gcc
             disable_jemalloc: -DDISABLE_JEMALLOC=ON
 
@@ -607,6 +607,8 @@ jobs:
         run: |
           apk update
           apk add bash cmake curl git python3 wget make gcc g++ autoconf linux-headers py3-pip py3-redis
+          # FIXME: Workaround for gcc 15 issue for rocksdb https://github.com/apache/kvrocks/issues/2927
+          echo "CXXFLAGS=$CXXFLAGS -include cstdint" >> $GITHUB_ENV
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
 
       - name: Cache redis
