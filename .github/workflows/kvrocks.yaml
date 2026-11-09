@@ -531,9 +531,9 @@ jobs:
           - name: Debian 12
             image: debian:12
             compiler: gcc
-          - name: Alpine 3
-            image: alpine:3.22
-            compiler: gcc
+          - name: Alpine 3.24
+            image: alpine:3.24
+            compiler: clang
             disable_jemalloc: -DDISABLE_JEMALLOC=ON
 
     runs-on: ubuntu-22.04
@@ -602,12 +602,14 @@ jobs:
           apt install -y bash build-essential cmake curl git libssl-dev libtool python3 python3-pip wget
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
 
-      - name: Setup Alpine
+      - name: Setup Alpine 3
         if: ${{ startsWith(matrix.image, 'alpine') }}
         run: |
           apk update
-          apk add bash cmake curl git python3 wget make gcc g++ autoconf linux-headers py3-pip py3-redis
+          apk add bash cmake curl git python3 wget make clang libatomic g++ autoconf linux-headers py3-pip py3-redis
           echo "NPROC=$(nproc)" >> $GITHUB_ENV
+          #Fix clang build on musl
+          echo 'CMAKE_CXX_STANDARD_LIBRARIES="-latomic"'  >> $GITHUB_ENV
 
       - name: Cache redis
         id: cache-redis
