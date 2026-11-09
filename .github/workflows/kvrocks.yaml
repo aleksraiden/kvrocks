@@ -531,7 +531,7 @@ jobs:
           - name: Debian 12
             image: debian:12
             compiler: gcc
-          - name: Alpine 3.24
+          - name: Alpine 3
             image: alpine:3.24
             compiler: clang
             disable_jemalloc: -DDISABLE_JEMALLOC=ON
