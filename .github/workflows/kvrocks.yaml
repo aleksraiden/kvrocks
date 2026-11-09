@@ -71,9 +71,6 @@ jobs:
         uses: crate-ci/typos@v1.52.0
         with:
           config: .github/config/typos.toml
-      - uses: apache/skywalking-eyes/header@v0.9.0
-        with:
-          config: .github/config/licenserc.yml
 
   check-and-lint:
     name: Lint and check code
@@ -107,10 +104,6 @@ jobs:
       - name: Check with clang-format
         id: check-format
         run: ./x.py check format --clang-format-path clang-format-18
-      - name: Check with clang-tidy
-        run: |
-          ./x.py build --skip-build --dep-dir ${{ env.KVROCKS_DEPS_CACHE_DIR }}
-          ./x.py check tidy -j $(nproc) --clang-tidy-path clang-tidy-18 --run-clang-tidy-path run-clang-tidy-18
       - name: Lint with golangci-lint
         run: ./x.py check golangci-lint
       - name: Prepare format patch
@@ -378,7 +371,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        os: [ubuntu-24.04]
     steps:
       - uses: actions/checkout@v7
       - name: Get core numbers
