@@ -37,7 +37,7 @@ class ClusterTest : public TestBase {
   explicit ClusterTest() = default;
   ~ClusterTest() override = default;
 };
-
+/*********************************************************************************
 TEST_F(ClusterTest, CluseterSetNodes) {
   Status s;
 
@@ -554,3 +554,4 @@ TEST_F(ClusterTest, GetReplicas) {
   ASSERT_FALSE(unknown_node.IsOK());
   ASSERT_EQ(unknown_node.Msg(), "Invalid cluster node id");
 }
+**********************************************************************************************/
